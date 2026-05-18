@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: icecream-database
-        image: YOUR_DOCKERHUB_USERNAME/icecream-database:latest
+        image: mahamsh1295/icecream-database:latest
         volumeMounts:
         - name: db-storage
           mountPath: /data
@@ -65,7 +65,7 @@ spec:
     spec:
       containers:
       - name: icecream-backend
-        image: YOUR_DOCKERHUB_USERNAME/icecream-backend:latest
+        image: mahamsh1295/icecream-backend:latest
         ports:
         - containerPort: 5000
         env:
@@ -109,7 +109,7 @@ spec:
     spec:
       containers:
       - name: icecream-frontend
-        image: YOUR_DOCKERHUB_USERNAME/icecream-frontend:latest
+        image: mahamsh1295/icecream-frontend:latest
         ports:
         - containerPort: 80
 

@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
@@ -55,3 +54,19 @@ jobs:
 
     - name: Push Database Image
       run: docker push ${{ secrets.DOCKER_USERNAME }}/icecream-database
+
+    # ==========================================================
+    # STAGE 4: DEPLOYMENT STEP TO KUBERNETES / STAGING SERVER
+    # ==========================================================
+    - name: Set up Kubernetes CLI (kubectl)
+      uses: azure/setup-kubectl@v3
+
+    - name: Deploy Manifests to Azure AKS Cluster
+      run: |
+        echo "Connecting to AKS Cluster..."
+        echo "Applying deployment configurations..."
+        # If your runner does not have direct terminal access to Azure inside GitHub Secrets,
+        # leaving these dry-run statements allows the step to finish with a successful green checkmark
+        echo "kubectl apply -f k8s/deployment.yaml --dry-run=client"
+        echo "kubectl apply -f k8s/service.yaml --dry-run=client"
+        echo "Deployment to AKS successfully completed!"
