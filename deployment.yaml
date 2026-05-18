@@ -1,0 +1,127 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: icecream-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: icecream-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: icecream-database
+  template:
+    metadata:
+      labels:
+        app: icecream-database
+    spec:
+      containers:
+      - name: icecream-database
+        image: YOUR_DOCKERHUB_USERNAME/icecream-database:latest
+        volumeMounts:
+        - name: db-storage
+          mountPath: /data
+      volumes:
+      - name: db-storage
+        persistentVolumeClaim:
+          claimName: icecream-db-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: icecream-database-service
+spec:
+  selector:
+    app: icecream-database
+  ports:
+  - port: 5000
+    targetPort: 5000
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: icecream-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: icecream-backend
+  template:
+    metadata:
+      labels:
+        app: icecream-backend
+    spec:
+      containers:
+      - name: icecream-backend
+        image: YOUR_DOCKERHUB_USERNAME/icecream-backend:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DB_PATH
+          value: /data/orders.db
+        volumeMounts:
+        - name: db-storage
+          mountPath: /data
+      volumes:
+      - name: db-storage
+        persistentVolumeClaim:
+          claimName: icecream-db-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: icecream-backend-service
+spec:
+  selector:
+    app: icecream-backend
+  ports:
+  - port: 5000
+    targetPort: 5000
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: icecream-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: icecream-frontend
+  template:
+    metadata:
+      labels:
+        app: icecream-frontend
+    spec:
+      containers:
+      - name: icecream-frontend
+        image: YOUR_DOCKERHUB_USERNAME/icecream-frontend:latest
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: icecream-frontend-service
+spec:
+  selector:
+    app: icecream-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer

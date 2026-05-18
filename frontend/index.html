@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ice Cream Parlor</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#fff8f0;display:flex;justify-content:center;padding:40px}
+    .card{background:#fff;border-radius:12px;padding:30px;width:400px;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+    h1{color:#e84393;text-align:center}
+    select,input[type=submit]{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #ddd}
+    input[type=submit]{background:#e84393;color:#fff;border:none;cursor:pointer;font-size:16px}
+    .flavors label{display:block;margin:4px 0}
+    .sizes label{margin-right:12px}
+    #result{margin-top:16px;padding:12px;background:#fce4ec;border-radius:8px;display:none}
+    table{width:100%;border-collapse:collapse;margin-top:20px}
+    th,td{padding:8px;border:1px solid #eee;text-align:left}
+    th{background:#e84393;color:#fff}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>🍦 Ice Cream Parlor</h1>
+  <label><b>Base:</b></label>
+  <select id="base"><option>Cone</option><option>Cup</option><option>Brownie</option></select>
+  <label><b>Size:</b></label><br>
+  <div class="sizes">
+    <label><input type="radio" name="size" value="Small" checked> Small</label>
+    <label><input type="radio" name="size" value="Medium"> Medium</label>
+    <label><input type="radio" name="size" value="Large"> Large</label>
+  </div>
+  <label><b>Flavors:</b></label>
+  <div class="flavors">
+    <label><input type="checkbox" value="Chocolate"> Chocolate (+$2.00)</label>
+    <label><input type="checkbox" value="Strawberry"> Strawberry (+$2.00)</label>
+    <label><input type="checkbox" value="Vanilla"> Vanilla (+$1.50)</label>
+    <label><input type="checkbox" value="Cookies and Cream"> Cookies &amp; Cream (+$2.50)</label>
+    <label><input type="checkbox" value="Caramel"> Caramel (+$1.50)</label>
+    <label><input type="checkbox" value="Pistachio"> Pistachio (+$2.50)</label>
+  </div><br>
+  <input type="submit" value="Place Order 🍦" onclick="placeOrder()">
+  <div id="result"></div>
+  <h3>Past Orders</h3>
+  <table>
+    <thead><tr><th>#</th><th>Base</th><th>Size</th><th>Flavors</th><th>Total</th></tr></thead>
+    <tbody id="orders"></tbody>
+  </table>
+</div>
+<script>
+  // Backend API URL - update this if deploying to a different host
+  const API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : `http://${window.location.hostname}:5000`;
+
+  async function placeOrder() {
+    const base = document.getElementById('base').value;
+    const size = document.querySelector('input[name=size]:checked').value;
+    const flavors = [...document.querySelectorAll('.flavors input:checked')].map(x => x.value);
+    const r = await fetch(`${API_URL}/order`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({base, size, flavors})
+    });
+    const d = await r.json();
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').innerHTML = `<b>Order placed!</b> Total: $${d.total.toFixed(2)}`;
+    loadOrders();
+  }
+
+  async function loadOrders() {
+    const r = await fetch(`${API_URL}/orders`);
+    const d = await r.json();
+    document.getElementById('orders').innerHTML = d.map(o =>
+      `<tr><td>${o.id}</td><td>${o.base}</td><td>${o.size}</td><td>${o.flavors}</td><td>$${o.total.toFixed(2)}</td></tr>`
+    ).join('');
+  }
+
+  loadOrders();
+</script>
+</body>
+</html>
